@@ -1,5 +1,6 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
+const { title } = require('process');
 require('console.table');
 
 const db = mysql.createConnection(
@@ -125,12 +126,12 @@ function addDepartment() {
   ]).then(function (res) {
     console.log(res);
     const query = connection.query(
-      "INSERT INTO departments SET ?",
+      "INSERT INTO department SET ?",
       {
         name: res.departmentName
       },
       function (err, res) {
-        connection.query("SELECT * FROM departments", function (err, res) {
+        connection.query("SELECT * FROM department", function (err, res) {
           console.table(res);
 
           runProgram();
@@ -140,7 +141,7 @@ function addDepartment() {
 }
 
 function viewAllDepartments() {
-  connection.query("SELECT * FROM departments", function (err, res) {
+  connection.query("SELECT * FROM department", function (err, res) {
     console.table(res);
 
     runProgram();
@@ -149,7 +150,7 @@ function viewAllDepartments() {
 
 function addRole() {
   let departments = [];
-  connection.query("SELECT * FROM departments",
+  connection.query("SELECT * FROM department",
     function (err, res) {
       if (err) throw err;
       for (let i = 0; i < res.length; i++) {
@@ -199,7 +200,7 @@ function addRole() {
 }
 
 function viewAllRoles(){
-  connection.query("SELECT roles.*, department.name FROM roles LEFT JOIN department ON department.id = roles.department_id", function (err, res){
+  connection.query("SELECT role.*, department.name FROM role LEFT JOIN department ON department.id = roles.department_id", function (err, res){
     if (err) throw err;
     console.table(res);
 
@@ -207,10 +208,35 @@ function viewAllRoles(){
   })
 }
 
+function updateEmployeeRole(){
+  ​
+  connection.query("SELECT first_name, last_name, id FROM employee",
+  function(err,res){
+    let employees = res.map(employee => ({name: employee.first_name + " " + employee.last_name, value: employee.id}))
+​
+  inquirer.prompt([
+    {
+      type: "list",
+      name: "employeesName",
+      message: "Which employee's role would you like to update?",
+      choices: employees
+    },
+    {
+      type: "list",
+      name: "role",
+      message: "What is the employee's new role?",
+      choices: title
+    }
+  ]).then (function(res){
+    connection.query(`UPDATE employees SET role_id = ${res.role} WHERE id = ${res.employeesName}`,
+    function (err, res) {
+      if (err) throw err;
+      console.log(res);
 
-// db.query('SELECT * FROM students', function (err, results) {
-//   console.log(results);
-// });
-
+      runProgram();
+    });
+  })
+  })
+}
 
 runProgram();
